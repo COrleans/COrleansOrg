@@ -1,0 +1,46 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout_Turorials.cshtml";
+}
+<h1>Application Bootstrapping within a Silo </h1>
+
+<p>There are several scenarios where application want to run some “auto-exec” functions when a silo comes online.</p>
+<p>
+    Some examples include, but are not limited to:
+    * Starting background timers to perform periodic housekeeping tasks
+    * Pre-loading some cache grains with data downloaded from external backing storage.
+</p>
+<p>We have now added support for this auto-run functionality through configuring “bootstrap providers” for Orleans silos. For example:</p>
+<div class="language-xml highlighter-rouge">
+    <pre class="highlight"><code><span class="nt">&lt;OrleansConfiguration</span> <span class="na">xmlns=</span><span class="s">"urn:orleans"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;Globals&gt;</span>
+    <span class="nt">&lt;BootstrapProviders&gt;</span>
+    <span class="nt">&lt;Provider</span> <span class="na">Type=</span><span class="s">"My.App.BootstrapClass1"</span> <span class="na">Name=</span><span class="s">"bootstrap1"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;Provider</span> <span class="na">Type=</span><span class="s">"My.App.BootstrapClass2"</span> <span class="na">Name=</span><span class="s">"bootstrap2"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/BootstrapProviders&gt;</span>
+    <span class="nt">&lt;/Globals&gt;</span>
+<span class="nt">&lt;/OrleansConfiguration&gt;</span>
+</code></pre>
+</div>
+<p>It is also possible to register Bootstrap provider programaticaly, via calling one of the:</p>
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="k">public</span> <span class="k">void</span> <span class="nf">RegisterBootstrapProvider</span><span class="p">(</span><span class="kt">string</span> <span class="n">providerTypeFullName</span><span class="p">,</span> <span class="kt">string</span> <span class="n">providerName</span><span class="p">,</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="n">properties</span> <span class="p">=</span> <span class="k">null</span><span class="p">)</span>
+<span class="k">public</span> <span class="k">void</span> <span class="n">RegisterBootstrapProvider</span><span class="p">&lt;</span><span class="n">T</span><span class="p">&gt;(</span><span class="kt">string</span> <span class="n">providerName</span><span class="p">,</span> <span class="n">IDictionary</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">,</span> <span class="kt">string</span><span class="p">&gt;</span> <span class="n">properties</span> <span class="p">=</span> <span class="k">null</span><span class="p">)</span> <span class="n">where</span> <span class="n">T</span> <span class="p">:</span> <span class="n">IBootstrapProvider</span> 
+</code></pre>
+</div>
+<p>on the <a href="https://github.com/dotnet/orleans/blob/master/src/Orleans/Configuration/GlobalConfiguration.cs"><code class="highlighter-rouge">Orleans.Runtime.Configuration.GlobalConfiguration</code></a> class.</p>
+
+<p>These bootstrap providers are C# classes that implement the <code class="highlighter-rouge">Orleans.Providers.IBootstrapProvider</code> interface.</p>
+
+<p>When each silo starts up, the Orleans runtime will instantiate each of the listed app bootstrap classes, and then call their Init method in an appropriate runtime execution context that allows those classes to act as a client and send messages to grains.</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="n">Task</span> <span class="nf">Init</span><span class="p">(</span>
+    <span class="kt">string</span> <span class="n">name</span><span class="p">,</span> 
+    <span class="n">IProviderRuntime</span> <span class="n">providerRuntime</span><span class="p">,</span> 
+    <span class="n">IProviderConfiguration</span> <span class="n">config</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>Any Exceptions that are thrown from an Init method of a bootstrap provider will be reported by the Orleans runtime in the silo log, then the silo startup will be halted.</p>
+
+<p>This fail-fast approach is the standard way that Orleans handles silo start-up issues, and is intended to allow any problems with silo configuration and/or bootstrap logic to be easily detected during testing phases rather than being silently ignored and causing unexpected problems later in the silo lifecycle.</p>

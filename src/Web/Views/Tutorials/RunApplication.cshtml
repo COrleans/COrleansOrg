@@ -1,0 +1,60 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout_Turorials.cshtml";
+}
+<h1>Running the Application </h1>
+
+<h2 id="configuring-connections-to-orleans">Configuring Connections to Orleans</h2>
+
+<p>
+    To allow applications to communicate with grains from outside Orleans, the framework includes a client library.
+    This client library might be used by a desktop or mobile application, or by a front end server that renders interactive web pages or exposes a web services API.
+    The client library provides an API for writing asynchronous clients that communicate with Orleans grains.
+    Once the client library is connected to an Orleans gateway, a client can send messages to grains, receive responses and receive asynchronous notifications from grains via observers.
+</p>
+
+<h2 id="connecting-to-a-gateway">Connecting to a Gateway</h2>
+
+<p>
+    To establish a connection, a client calls <code class="highlighter-rouge">GrainClient.Initialize()</code>.
+    This will connect to the gateway silo at the IP address and port specified in the <em>ClientConfiguration.xml</em> file.
+    This file must be placed in the same directory as the <em>Orleans.dll</em> library used by the client.
+    As an alternative, a configuration object can be passed to <code class="highlighter-rouge">GrainClient.Initialize()</code> programmatically instead of loading it from a file.
+</p>
+
+<h2 id="configuring-the-client">Configuring the Client</h2>
+
+<p>In <em>ClientConfiguration.xml</em>, the <code class="highlighter-rouge">Gateway</code> element specifies the address and port of the gateway endpoint that need to match those in <em>OrleansConfiguration.xml</em> on the silo side:</p>
+
+<div class="language-xml highlighter-rouge">
+    <pre class="highlight"><code><span class="nt">&lt;ClientConfiguration</span> <span class="na">xmlns=</span><span class="s">"urn:orleans"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;Gateway</span> <span class="na">Address=</span><span class="s">"&lt;IP address or host name of silo&gt;"</span> <span class="na">Port=</span><span class="s">"30000"</span> <span class="nt">/&gt;</span>
+<span class="nt">&lt;/ClientConfiguration&gt;</span>
+</code></pre>
+</div>
+
+<p>
+    If an Orleans-based application runs in Windows Azure, the client automatically discovers silo gateways and shouldn’t be statically configured.
+    Refer to the <a href="../Samples-Overview/Azure-Web-Sample">Azure application sample</a> for an example of how to configure the client.
+</p>
+
+<h2 id="configuring-silos">Configuring Silos</h2>
+
+<p>In <em>OrleansConfiguration.xml</em>, the <code class="highlighter-rouge">ProxyingGateway</code> element specifies the gateway endpoint of the silo, which is separate from the inter-silo endpoint defined by the Networking element and must have a different port number:</p>
+
+<div class="language-xml highlighter-rouge">
+    <pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="utf-8"?&gt;</span>
+<span class="nt">&lt;OrleansConfiguration</span> <span class="na">xmlns=</span><span class="s">"urn:orleans"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;Defaults&gt;</span>
+    <span class="nt">&lt;Networking</span> <span class="na">Address=</span><span class="s">""</span> <span class="na">Port=</span><span class="s">"11111"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;ProxyingGateway</span> <span class="na">Address=</span><span class="s">""</span> <span class="na">Port=</span><span class="s">"30000"</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/Defaults&gt;</span>
+<span class="nt">&lt;/OrleansConfiguration&gt;</span>
+</code></pre>
+</div>
+
+<h2 id="next">Next</h2>
+<p>Back to the <a href="../">Orleans documentation</a> index</p>
+
+<p>Back to the <a href="./">Getting Started</a> index</p>
+
+<p>Forward to the <a href="../Step-by-step-Tutorials">Step-by-step Tutorials</a></p> 

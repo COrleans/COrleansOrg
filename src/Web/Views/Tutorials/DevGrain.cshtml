@@ -1,0 +1,119 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout_Turorials.cshtml";
+}
+<h1>Developing a Grain </h1>
+
+<p>Please read about <a href="/orleans/Getting-Started-With-Orleans/Grains">Grains</a> before reading this article.</p>
+
+<h2 id="grain-interfaces">Grain Interfaces</h2>
+
+<p>
+    Grains interact with each other by invoking methods declared as part of the respective grain interfaces.
+    A grain class implements one or more previously declared grain interfaces.
+    All methods of a grain interface must return a <code class="highlighter-rouge">Task</code> (for <code class="highlighter-rouge">void</code> methods) or a <code class="highlighter-rouge">Task&lt;T&gt;</code> (for methods returning values of type <code class="highlighter-rouge">T</code>).
+</p>
+
+<p>The following is an excerpt from the <a href="/orleans/Samples-Overview/Presence-Service">Presence Service</a> sample:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="c1">//an example of a Grain Interface
+</span><span class="k">public</span> <span class="k">interface</span> <span class="n">IPlayerGrain</span> <span class="p">:</span> <span class="n">IGrainWithGuidKey</span>
+<span class="p">{</span>
+    <span class="n">Task</span><span class="p">&lt;</span><span class="n">IGameGrain</span><span class="p">&gt;</span> <span class="nf">GetCurrentGame</span><span class="p">();</span>
+    <span class="n">Task</span> <span class="nf">JoinGame</span><span class="p">(</span><span class="n">IGameGrain</span> <span class="n">game</span><span class="p">);</span>
+    <span class="n">Task</span> <span class="nf">LeaveGame</span><span class="p">(</span><span class="n">IGameGrain</span> <span class="n">game</span><span class="p">);</span>
+<span class="p">}</span>
+<span class="c1">//an example of a Grain class implementing a Grain Interface
+</span><span class="k">public</span> <span class="k">class</span> <span class="nc">PlayerGrain</span> <span class="p">:</span> <span class="n">Grain</span><span class="p">,</span> <span class="n">IPlayerGrain</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="n">IGameGrain</span> <span class="n">currentGame</span><span class="p">;</span>
+    <span class="c1">// Game the player is currently in. May be null.
+</span>    <span class="k">public</span> <span class="n">Task</span><span class="p">&lt;</span><span class="n">IGameGrain</span><span class="p">&gt;</span> <span class="nf">GetCurrentGame</span><span class="p">()</span>
+    <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Task</span><span class="p">.</span><span class="nf">FromResult</span><span class="p">(</span><span class="n">currentGame</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="c1">// Game grain calls this method to notify that the player has joined the game.
+</span>    <span class="k">public</span> <span class="n">Task</span> <span class="nf">JoinGame</span><span class="p">(</span><span class="n">IGameGrain</span> <span class="n">game</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="n">currentGame</span> <span class="p">=</span> <span class="n">game</span><span class="p">;</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Player {0} joined game {1}"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nf">GetPrimaryKey</span><span class="p">(),</span> <span class="n">game</span><span class="p">.</span><span class="nf">GetPrimaryKey</span><span class="p">());</span>
+    <span class="k">return</span> <span class="n">TaskDone</span><span class="p">.</span><span class="n">Done</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// Game grain calls this method to notify that the player has left the game.
+</span>   <span class="k">public</span> <span class="n">Task</span> <span class="nf">LeaveGame</span><span class="p">(</span><span class="n">IGameGrain</span> <span class="n">game</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="n">currentGame</span> <span class="p">=</span> <span class="k">null</span><span class="p">;</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="s">"Player {0} left game {1}"</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nf">GetPrimaryKey</span><span class="p">(),</span> <span class="n">game</span><span class="p">.</span><span class="nf">GetPrimaryKey</span><span class="p">());</span>
+    <span class="k">return</span> <span class="n">TaskDone</span><span class="p">.</span><span class="n">Done</span><span class="p">;</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<h2 id="grain-reference">Grain Reference</h2>
+
+<p>
+    A Grain Reference is a proxy object that implements the same grain interface implemented by the corresponding grain class. Using asynchronous messaging, it provides full-duplex communication with other grains, as well as <a href="/Orleans/Getting-Started-With-Orleans/Clients">Orleans Client</a> code.
+    A grain reference can be constructed by passing the identity of a grain to the <code class="highlighter-rouge">GrainFactory.GetGrain&lt;T&gt;()</code> method, where T is the grain interface. Developers can use grain references like any other .NET object. It can be passed to a method, used as a method return value, etc.
+</p>
+
+<p>The following are examples of how to construct a grain reference of the <code class="highlighter-rouge">IPlayerGrain</code> interface defined above.</p>
+
+<p>In Orleans Client code:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code>    <span class="c1">//construct the grain reference of a specific player
+</span>    <span class="n">IPlayerGrain</span> <span class="n">player</span> <span class="p">=</span> <span class="n">GrainClient</span><span class="p">.</span><span class="n">GrainFactory</span><span class="p">.</span><span class="n">GetGrain</span><span class="p">&lt;</span><span class="n">IPlayerGrain</span><span class="p">&gt;(</span><span class="n">playerId</span><span class="p">);</span>
+</code></pre>
+</div>
+<p>From inside a Grain class:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code>    <span class="c1">//construct the grain reference of a specific player
+</span>    <span class="n">IPlayerGrain</span> <span class="n">player</span> <span class="p">=</span> <span class="n">GrainFactory</span><span class="p">.</span><span class="n">GetGrain</span><span class="p">&lt;</span><span class="n">IPlayerGrain</span><span class="p">&gt;(</span><span class="n">playerId</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<h2 id="grain-method-invocation">Grain Method Invocation</h2>
+
+<p>The Orleans programming model is based on Asynchronous Programming with async and await. A detailed article about the subject is <a href="https://msdn.microsoft.com/en-us/library/hh191443.aspx">here</a>.</p>
+
+<p>Using the grain reference from the previous example, the following is an example of grain method invocation:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="c1">//Invoking a grain method asynchronously
+</span><span class="n">Task</span> <span class="n">joinGameTask</span> <span class="p">=</span> <span class="n">player</span><span class="p">.</span><span class="nf">JoinGame</span><span class="p">(</span><span class="k">this</span><span class="p">);</span>
+<span class="c1">//The `await` keyword effectively turns the remainder of the method into a closure that will asynchronously execute upon completion of the Task being awaited without blocking the executing thread.
+</span><span class="n">await</span> <span class="n">joinGameTask</span><span class="p">;</span>
+<span class="c1">//The next lines will be turned into a closure by the C# compiler.
+</span><span class="n">players</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">playerId</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>
+    It is possible to join two or more <code class="highlighter-rouge">Task</code>s; the join creates a new <code class="highlighter-rouge">Task</code> that is resolved when all of its constituent <code class="highlighter-rouge">Task</code>s are completed. This is a useful pattern when a grain needs to start multiple computations and wait for all of them to complete before proceeding.
+    For example, a front-end grain that generates a web page made of many parts might make multiple back-end calls, one for each part, and receive a <code class="highlighter-rouge">Task</code> for each result.
+    The grain would then wait for the join of all of these <code class="highlighter-rouge">Task</code>s; when the join is resolved, the individual <code class="highlighter-rouge">Task</code>s have been completed, and all the data required to format the web page has been received.
+</p>
+
+<p>Example:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="n">List</span><span class="p">&lt;</span><span class="n">Task</span><span class="p">&gt;</span> <span class="n">tasks</span> <span class="p">=</span> <span class="k">new</span> <span class="n">List</span><span class="p">&lt;</span><span class="n">Task</span><span class="p">&gt;();</span>
+<span class="n">ChirperMessage</span> <span class="n">chirp</span> <span class="p">=</span> <span class="nf">CreateNewChirpMessage</span><span class="p">(</span><span class="n">text</span><span class="p">);</span>
+<span class="k">foreach</span> <span class="p">(</span><span class="n">IChirperSubscriber</span> <span class="n">subscriber</span> <span class="k">in</span> <span class="n">Followers</span><span class="p">.</span><span class="n">Values</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">tasks</span><span class="p">.</span><span class="nf">Add</span><span class="p">(</span><span class="n">subscriber</span><span class="p">.</span><span class="nf">NewChirpAsync</span><span class="p">(</span><span class="n">chirp</span><span class="p">));</span>
+<span class="p">}</span>
+<span class="n">Task</span> <span class="n">joinedTask</span> <span class="p">=</span> <span class="n">Task</span><span class="p">.</span><span class="nf">WhenAll</span><span class="p">(</span><span class="n">tasks</span><span class="p">);</span>
+<span class="n">await</span> <span class="n">joinedTask</span><span class="p">;</span>
+</code></pre>
+</div>
+
+<h2 id="taskdonedone-utility-property">TaskDone.Done Utility Property</h2>
+
+<p>There is no “standard” way to conveniently return an already completed “void” <code class="highlighter-rouge">Task</code>, so Orleans sample code defines <code class="highlighter-rouge">TaskDone.Done</code> for that purpose.</p>
+
+<h2 id="next">Next</h2>
+
+<p><a href="Developing-a-Client">Developing a Client</a></p>  

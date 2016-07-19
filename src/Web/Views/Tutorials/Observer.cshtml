@@ -1,0 +1,117 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout_Turorials.cshtml";
+}
+<h1>Client Observers </h1>
+<p>
+    There are situations in which a simple message/response pattern is not enough, and the client needs to receive asynchronous notifications.
+    For example, a user might want to be notified when a new instant message has been published by a friend.
+</p>
+
+<p>
+    Client observers is a mechanism that allows notifying clients asynchronously.
+    An observer is a one-way asynchronous interface that inherits from <code class="highlighter-rouge">IGrainObserver</code>, and all its methods must be void.
+    The grain sends a notification to the observer by invoking it like a grain interface method, except that it has no return value, and so the grain need not depend on the result.
+    The Orleans runtime will ensure one-way delivery of the notifications.
+    A grain that publishes such notifications should provide an API to add or remove observers.
+    In addition, it is usually convenient to expose a method that allows an existing subscription to be cancelled.
+    Grain developers may use the Orleans <code class="highlighter-rouge">ObserverSubscriptionManager&lt;T&gt;</code> generic class to simplify development of observed grain types.
+</p>
+
+<p>
+    To subscribe to a notification, the client must first create a local C# object that implements the observer interface.
+    It then calls a static method on the observer factory, <code class="highlighter-rouge">CreateObjectReference()</code>, to turn the C# object into a grain reference, which can then be passed to the subscription method on the notifying grain.
+</p>
+
+<p>
+    This model can also be used by other grains to receive asynchronous notifications.
+    Unlike in the client subscription case, the subscribing grain simply implements the observer interface as a facet, and passes in a reference to itself (e.g. <code class="highlighter-rouge">this.AsReference&lt;IMyGrainObserverInterface&gt;</code>).
+</p>
+
+<h2 id="code-example">Code Example</h2>
+
+<p>Let’s assume that we have a grain that periodicaly sends messages to clients. For simplicity, the message in our example will be a  string. We first define the interface on the client that will receive the message.</p>
+
+<p>the interface will look like this</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="n">IChat</span> <span class="p">:</span> <span class="n">IGrainObserver</span>
+<span class="p">{</span>
+    <span class="k">void</span> <span class="nf">ReceiveMessage</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>The only special thing is that the interface should inherit from <code class="highlighter-rouge">IGrainObserver</code>. Now any client that wants to observe those messages should implement a class which implements <code class="highlighter-rouge">IChat</code>.</p>
+
+<p>The simplest case would be something like this:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">Chat</span> <span class="p">:</span> <span class="n">IChat</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">void</span> <span class="nf">ReceiveMessage</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="n">Console</span><span class="p">.</span><span class="nf">WriteLine</span><span class="p">(</span><span class="n">message</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>Now on the server we should have a Grain which sends these chat messages to clients. The Grain also should have a mechanism for clients to subscribe and unsubscribe themselves to receive notifications. For subscription the Grain can use the utility class <code class="highlighter-rouge">ObserverSubscriptionManager</code>:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="k">class</span> <span class="nc">HelloGrain</span> <span class="p">:</span> <span class="n">Grain</span><span class="p">,</span> <span class="n">IHello</span>
+<span class="p">{</span>
+    <span class="k">private</span> <span class="n">ObserverSubscriptionManager</span><span class="p">&lt;</span><span class="n">IChat</span><span class="p">&gt;</span> <span class="n">_subsManager</span><span class="p">;</span>
+    <span class="k">public</span> <span class="k">override</span> <span class="n">async</span> <span class="n">Task</span> <span class="nf">OnActivateAsync</span><span class="p">()</span>
+    <span class="p">{</span>
+    <span class="c1">// We created the utility at activation time.
+</span>        <span class="n">_subsManager</span> <span class="p">=</span> <span class="k">new</span> <span class="n">ObserverSubscriptionManager</span><span class="p">&lt;</span><span class="n">IChat</span><span class="p">&gt;();</span>
+    <span class="n">await</span> <span class="k">base</span><span class="p">.</span><span class="nf">OnActivateAsync</span><span class="p">();</span>
+    <span class="p">}</span>
+    <span class="c1">// Clients call this to subscribe.
+</span>    <span class="k">public</span> <span class="n">async</span> <span class="n">Task</span> <span class="nf">Subscribe</span><span class="p">(</span><span class="n">IChat</span> <span class="n">observer</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="n">_subsManager</span><span class="p">.</span><span class="nf">Subscribe</span><span class="p">(</span><span class="n">observer</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="c1">//Also clients use this to unsubscribe themselves to no longer receive the messages.
+</span>    <span class="k">public</span> <span class="n">async</span> <span class="n">Task</span> <span class="nf">UnSubscribe</span><span class="p">(</span><span class="n">IChat</span> <span class="n">observer</span><span class="p">)</span>
+    <span class="p">{</span>
+    <span class="n">_SubsManager</span><span class="p">.</span><span class="nf">Unsubscribe</span><span class="p">(</span><span class="n">observer</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>To send the message to clients the <code class="highlighter-rouge">Notify</code> method of the <code class="highlighter-rouge">ObserverSubscriptionManager&lt;IChat&gt;</code> instance can be used. The method takes an <code class="highlighter-rouge">Action&lt;T&gt;</code> method or lambda expression (where <code class="highlighter-rouge">T</code> is of type <code class="highlighter-rouge">IChat</code> here). You can call any method on the interface to send it to clients. In our case we only have one method <code class="highlighter-rouge">ReceiveMessage</code> and our sending code on the server would look like this:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="k">public</span> <span class="n">Task</span> <span class="nf">SendUpdateMessage</span><span class="p">(</span><span class="kt">string</span> <span class="n">message</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">_SubsManager</span><span class="p">.</span><span class="nf">Notify</span><span class="p">(</span><span class="n">s</span> <span class="p">=&gt;</span> <span class="n">s</span><span class="p">.</span><span class="nf">ReceiveMessage</span><span class="p">(</span><span class="n">message</span><span class="p">));</span>
+    <span class="k">return</span> <span class="n">TaskDone</span><span class="p">.</span><span class="n">Done</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre>
+</div>
+
+<p>Now our server has a method to send messages to observer clients, two methods for subscribing/unsubscribing and the client implemented a class to be able to observe the grain messages. The last step is to create an observer reference on the client using our previously implemented <code class="highlighter-rouge">Chat</code> class and let it receive the messages after subscribing it.</p>
+
+<p>The code would look like this:</p>
+
+<div class="language-csharp highlighter-rouge">
+    <pre class="highlight"><code><span class="c1">//First create the grain reference
+</span><span class="n">var</span> <span class="n">friend</span> <span class="p">=</span> <span class="n">GrainClient</span><span class="p">.</span><span class="n">GrainFactory</span><span class="p">.</span><span class="n">GetGrain</span><span class="p">&lt;</span><span class="n">IHello</span><span class="p">&gt;(</span><span class="m">0</span><span class="p">);</span>
+<span class="n">Chat</span> <span class="n">c</span> <span class="p">=</span> <span class="k">new</span> <span class="nf">Chat</span><span class="p">();</span>
+<span class="c1">//Create a reference for chat usable for subscribing to the observable grain.
+</span><span class="n">var</span> <span class="n">obj</span> <span class="p">=</span> <span class="n">await</span> <span class="n">GrainClient</span><span class="p">.</span><span class="n">GrainFactory</span><span class="p">.</span><span class="n">CreateObjectReference</span><span class="p">&lt;</span><span class="n">IChat</span><span class="p">&gt;(</span><span class="n">c</span><span class="p">);</span>
+<span class="c1">//Subscribe the instance to receive messages.
+</span><span class="n">await</span> <span class="n">friend</span><span class="p">.</span><span class="nf">Subscribe</span><span class="p">(</span><span class="n">obj</span><span class="p">);</span>
+</code></pre>
+</div>
+
+<p>Now whenever our grain on the server calls the <code class="highlighter-rouge">SendUpdateMessage</code> method, all subscribed clients will receive the message. In our client code, the <code class="highlighter-rouge">Chat</code> instance in variable <code class="highlighter-rouge">c</code> will receive the message and output it to the console.</p>
+
+<p><strong>Note:</strong> Support for observers might be removed in a future version and replaced with a Simple Message Stream <a href="http://dotnet.github.io/orleans/Orleans-Streams/">SMS</a>, which can support the same concept with more power, flexibility, and reliability.</p>
+
+<h2 id="next">Next</h2>
+
+<p>Next we look at <a href="Developing-a-Grain">Developing a Grain</a></p> 

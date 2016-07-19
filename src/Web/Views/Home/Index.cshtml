@@ -1,0 +1,65 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="jumbotron">
+    <div class="container">
+        <h1 class="title">
+            Microsoft Orleans <br><small class="subtitle">一种可以快速创建分布式、高可扩展性应用程序的NET开发框架</small>
+        </h1>
+        <div class="options">
+            <a class="btn btn-lg btn-primary" href="http://jq.qq.com/?_wv=1027&k=2KnvM80">加入社区QQ群</a> <a class="btn btn-lg btn-primary" href="/tutorials/introduction">快速入门</a>
+        </div>
+    </div>
+</div>
+<div class="container future">
+    <p>
+        微软Orleans（奥尔良）是一个为构建分布式、高性能计算应用提供快速和直观搭建方法的框架。使用者无需学习和涉及复杂的并发和弹性扩容技术。
+        Orleans项目是由微软研究院创建，应用于云端环境下。
+    </p>
+    <p>Orleans已经在微软Azure和其它一些产品中大量运用，特别是343 Industries工作室用于光晕4和光晕5游戏的云服务，也包括其它一些快速扩大的企业用户群体。</p>
+    <br>
+    <div class="row">
+        <div class="col-md-4">
+            <h3>高可水平扩展</h3>
+            Orleans负责处理分布式系统构建过程中的复杂部分，使您的应用得以在成百上千台服务器的规模上自由伸缩。
+        </div>
+        <div class="col-md-4">
+            <h3>低延迟</h3>
+            Orleans允许你在内存中保存所需状态，因此你的应用可以快速响应传入的请求。
+        </div>
+        <div class="col-md-4">
+            <h3>简化的并发处理</h3>
+            Orleans允许你以C#代码撰写简单的单线程程序，在Actor之间以异步消息的方式处理并发需求。
+        </div>
+    </div>
+    <hr>
+    <p>Orleans将Actor命名为“Grain”，并且以接口的方式进行描述。异步方法相当于声明Actor能接收什么样的消息：</p>
+    <div class="language-csharp highlighter-rouge">
+        <pre class="highlight"><code><span class="k">public</span> <span class="k">interface</span> <span class="n">IMyGrain</span> <span class="p">:</span> <span class="n">IGrainWithStringKey</span>
+<span class="p">{</span>
+        <span class="n">Task</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="nf">SayHello</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">);</span>
+<span class="p">}</span>
+</code></pre>
+    </div>
+    <p>接口在Orleans中的实现代码如下：</p>
+    <div class="language-csharp highlighter-rouge">
+        <pre class="highlight"><code><span class="k">public</span> <span class="k">class</span> <span class="nc">MyGrain</span> <span class="p">:</span> <span class="n">IMyGrain</span>
+<span class="p">{</span>
+        <span class="k">public</span> <span class="n">async</span> <span class="n">Task</span><span class="p">&lt;</span><span class="kt">string</span><span class="p">&gt;</span> <span class="nf">SayHello</span><span class="p">(</span><span class="kt">string</span> <span class="n">name</span><span class="p">)</span>
+        <span class="p">{</span>
+        <span class="k">return</span> <span class="s">"Hello "</span> <span class="p">+</span> <span class="n">name</span><span class="p">;</span>
+        <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+    </div>
+    <p>调用方式如下（你可以通过创建一个代理对象的方式向一个Grain发送消息，来调用其方法）：</p>
+    <div class="language-csharp highlighter-rouge">
+        <pre class="highlight"><code><span class="k">var</span> <span class="n">grain</span> <span class="p">=</span> <span class="n">GrainClient</span><span class="p">.</span><span class="n">GrainFactory</span><span class="p">.</span><span class="n">GetGrain</span><span class="p">&lt;</span><span class="n">IMyGrain</span><span class="p">&gt;(</span><span class="s">"grain1"</span><span class="p">);</span>
+<span class="k">await</span> <span class="n">grain</span><span class="p">.</span><span class="nf">SayHello</span><span class="p">(</span><span class="s">"World"</span><span class="p">);</span>
+</code></pre>
+    </div>
+    <h2 id="where-next">了解更多？</h2>
+    <p><a href="Introduction">Orleans简介</a>.</p>
+    <p><a href="Step-by-step-Tutorials">入门教程</a>.</p>
+    <p><a href="https：//github.com/dotnet/orleans">Orleans源码</a>.</p>
+</div>

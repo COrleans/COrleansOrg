@@ -1,0 +1,146 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <!-- Title here -->
+    <title>COrleans社区</title>
+    <!-- Description, Keywords and Author -->
+    <meta name="description" content="Orleans中国社区">
+    <meta name="keywords" content="C#,Orleans,Akka.net">
+    <meta name="author" content="Corleans Group">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Stylesheets -->
+    <!-- Bootstrap CSS -->
+    <link href="~/public/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Menu Drop Down Plug-in -->
+    <link href="~/public/css/ddlevelsmenu-base.css" rel="stylesheet">
+    <link href="~/public/css/ddlevelsmenu-topbar.css" rel="stylesheet">
+    <!-- Flex Slider CSS -->
+    <link href="~/public/css/flexslider.css" rel="stylesheet">
+    <!-- Pretty Photo CSS -->
+    <link href="~/public/css/prettyPhoto.css" rel="stylesheet">
+    <!-- Font awesome CSS -->
+    <link href="~/public/css/font-awesome.min.css" rel="stylesheet">
+    <!-- Change the template color below. Supported colors blue,red and green. -->
+    <link href="~/public/css/blue.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="~/public/css/style.css" rel="stylesheet">
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="~/public/img/favicon/favicon.ico">
+</head>
+<body>
+    @Html.Partial("_Header")
+    <!-- Main content -->
+    <div class="main">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 hidden-lg">
+                    <div class="padd"><div class="navis"></div></div>
+                </div>
+                <div class="visible-lg">
+                    <div class="col-md-3 sidey">
+                        <!-- Sidebar Starts Here -->
+                        <div class="padd sidebar">
+                            <!-- 2nd widget -->
+                            <div class="widget">
+                                <h3 class="matopen">入门指引</h3>
+                                <div class="matter">
+                                    <ul>
+                                        <li><a href="/tutorials/introduction">Orleans简介</a></li>
+                                        <li><a href="/tutorials/benefits">主要特性</a></li>
+                                        <li><a href="/tutorials/grains">Grains</a></li>
+                                        <li><a href="/tutorials/silos">Silos</a></li>
+                                        <li><a href="/tutorials/clients">客户端</a></li>
+                                        <li><a href="/tutorials/faq">常见问题</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <!-- 3rd widget -->
+                            <div class="widget">
+                                <h3 class="matopen">如何安装</h3>
+                                <div class="matter">
+                                    <ul>
+                                        <li><a href="/tutorials/prerequisites">安装依赖</a></li>
+                                        <li><a href="/tutorials/vstool">Vs Orleans工具包</a></li>
+                                        <li><a href="/tutorials/tbp">其它模板工具包</a></li>
+                                        <li><a href="/tutorials/nugetpackages">Orleans NuGet 包</a></li>
+                                        <li><a href="/tutorials/changlog">Orleans更新日志</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="widget">
+                                <h3 class="matopen">开发入门</h3>
+                                <div class="matter">
+                                    <ul>
+                                        <li><a href="/tutorials/devgrain">编写第一个Grain</a></li>
+                                        <li><a href="/tutorials/grainpersistence">Grain持久化</a></li>
+                                        <li><a href="/tutorials/devclient">编写Grain客户端</a></li>
+                                        <li><a href="/tutorials/observer">发布订阅</a></li>
+                                        <li><a href="/tutorials/runapplication">运行Orleans程序</a></li>
+                                        <li><a href="/tutorials/appbootwithsilo">在Silo中启动Orleans程序</a></li>
+                                        <li><a href="/tutorials/timerandreminder">Timers And Reminders</a></li>
+                                        <li><a href="/tutorials/orleansstream">Orleans Streams</a></li>
+                                        <li><a href="/tutorials/debugging">Debugging and Symbols</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="widget">
+                                <h3 class="matopen">进阶教程</h3>
+                                <div class="matter">
+                                    <ul>
+                                        <li><a href="#">开发进阶</a></li>
+                                        <li><a href="#">官方示例</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="widget">
+                                <h3 class="matopen">配置教程</h3>
+                                <div class="matter">
+                                    <ul>
+                                        <li><a href="#">配置指引</a></li>
+                                        <li><a href="#">部署依赖库</a></li>
+                                        <li><a href="#">基于SQL SERVER部署</a></li>
+                                        <li><a href="#">NET垃圾回收</a></li>
+                                        <li><a href="#">Grain Activation垃圾回收</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Sidebar Ends Here -->
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    @RenderBody()
+                </div>
+                <div class="mobily hidden-lg">
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- JavaScript files -->
+    <!-- jQuery -->
+    <script src="~/public/js/jquery.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="~/public/js/bootstrap.min.js"></script>
+    <!-- Easing JS -->
+    <script src="~/public/js/easing.js"></script>
+    <!-- Drop Down Menu Plug-in JS -->
+    <script src="~/public/js/ddlevelsmenu.js"></script>
+    <!-- Flex Slider JS -->
+    <script src="~/public/js/flexslider.js"></script>
+    <!-- Pretty Photo, Isotope JS -->
+    <script src="~/public/js/jquery.prettyPhoto.js"></script>
+    <script src="~/public/js/isotope.js"></script>
+    <!-- Respond JS for IE8 -->
+    <script src="~/public/js/respond.min.js"></script>
+    <!-- HTML5 Support for IE -->
+    <script src="~/public/js/html5shiv.js"></script>
+    <!-- Custom JS -->
+    <script src="~/public/js/custom.js"></script>
+    <!-- This Page Script -->
+    <script>
+    </script>
+</body>
+</html>
